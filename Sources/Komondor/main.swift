@@ -27,7 +27,8 @@ let task = CommandLine.arguments[1]
 
 switch task {
 case "install":
-    try install(logger: logger)
+    let installerArgs = Array(CommandLine.arguments.dropFirst().dropFirst())
+    try install(logger: logger, args: installerArgs)
 case "run":
     let runnerArgs = Array(CommandLine.arguments.dropFirst().dropFirst())
     try runner(logger: logger, args: runnerArgs)

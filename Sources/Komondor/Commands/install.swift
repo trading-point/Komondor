@@ -1,6 +1,13 @@
 import Foundation
 import ShellOut
 
+extension Collection {
+    subscript(safe index: Index) -> Element? {
+        guard indices.contains(index) else { return nil }
+        return self[index]
+    }
+}
+
 /// The available hooks for git
 ///
 let hookList = [
@@ -32,7 +39,7 @@ let skippableHooks = [
     "pre-push"
 ]
 
-public func install(logger _: Logger) throws {
+public func install(logger _: Logger, args: [String]) throws {
     // Add a skip env var
     let env = ProcessInfo.processInfo.environment
     if env["SKIP_KOMONDOR"] != nil {
@@ -70,7 +77,17 @@ public func install(logger _: Logger) throws {
     }
 
     // TODO: What if Package.swift isn't in the CWD?
-    let swiftPackagePath = "Package.swift"
+    let swiftPackagePath: String = {
+        if let pathValueIndex = CommandLine.arguments.firstIndex(of: "--path").flatMap(CommandLine.arguments.index(after:)),
+            var pathValue = CommandLine.arguments[safe: pathValueIndex] {
+            if pathValue.last != "/" {
+                pathValue.append("/")
+            }
+            print("Using path: \(pathValue)")
+            return pathValue
+        }
+        return ""
+    }()    
 
     // Copy in the komondor templates
     try hookList.forEach { hookName in
